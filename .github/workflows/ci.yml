@@ -1,0 +1,37 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies (Strict Lockfile)
+        run: npm ci
+
+      - name: Full Security Audit
+        run: npm audit --audit-level=high
+
+      - name: Turborepo Type Check
+        run: npm run type-check
+
+      - name: Turborepo Lint
+        run: npm run lint
+
+      - name: Turborepo Unit Tests
+        run: npm run test
+
+      - name: Turborepo Production Build
+        run: npm run build
+
+      - name: Hardened Process Smoke Test
+        run: node scripts/smoke-test.mjs

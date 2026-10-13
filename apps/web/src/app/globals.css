@@ -1,0 +1,295 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-cosmos: #080D20;
+  --color-midnight-navy: #080D20;
+  --color-deep-indigo: #141936;
+  --color-moonlit-blue: #7899D5;
+  --color-celestial-ice: #C9E5FF;
+  --color-warm-ivory: #F3ECDD;
+  --color-antique-gold: #C8A96E;
+  --color-lunar-violet: #8D78D6;
+  --color-diya-amber: #E8A75A;
+  --color-danger-crimson: #DC5269;
+  --color-cosmos-card: rgba(20, 25, 54, 0.85);
+}
+
+body {
+  background-color: var(--color-midnight-navy);
+  color: #F3ECDD;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(120, 153, 213, 0.18) 0%, transparent 60%),
+    radial-gradient(circle at 10% 30%, rgba(141, 120, 214, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 90% 40%, rgba(200, 169, 110, 0.12) 0%, transparent 40%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Glassmorphism styling */
+.glass-panel {
+  background: rgba(20, 25, 54, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 169, 110, 0.2);
+  box-shadow: 0 12px 40px 0 rgba(4, 7, 20, 0.6);
+}
+
+.glass-panel-interactive {
+  background: rgba(20, 25, 54, 0.78);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(120, 153, 213, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel-interactive:hover {
+  border-color: rgba(200, 169, 110, 0.6);
+  box-shadow: 0 12px 36px -8px rgba(200, 169, 110, 0.25);
+  transform: translateY(-3px);
+}
+
+/* Cosmic & Lunar glows */
+.glow-gold {
+  box-shadow: 0 0 30px -5px rgba(200, 169, 110, 0.45);
+}
+
+.glow-lunar {
+  box-shadow: 0 0 30px -5px rgba(120, 153, 213, 0.45);
+}
+
+.glow-purple {
+  box-shadow: 0 0 30px -5px rgba(141, 120, 214, 0.45);
+}
+
+.glow-crimson {
+  box-shadow: 0 0 30px -5px rgba(220, 82, 105, 0.5);
+}
+
+/* Battle animations */
+@keyframes strike-lunge-left {
+  0% { transform: translateX(0); }
+  40% { transform: translateX(45px) scale(1.05); }
+  60% { transform: translateX(40px) scale(1.03); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes strike-lunge-right {
+  0% { transform: translateX(0); }
+  40% { transform: translateX(-45px) scale(1.05); }
+  60% { transform: translateX(-40px) scale(1.03); }
+  100% { transform: translateX(0) scale(1); }
+}
+
+@keyframes hit-shake {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  20% { transform: translateX(-12px); filter: brightness(2) drop-shadow(0 0 10px #DC5269); }
+  40% { transform: translateX(12px); filter: brightness(1.6); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+@keyframes guard-pulse {
+  0%, 100% { box-shadow: 0 0 15px rgba(120, 153, 213, 0.4); transform: scale(1); }
+  50% { box-shadow: 0 0 35px rgba(201, 229, 255, 0.8); transform: scale(1.03); }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-strike-left {
+  animation: strike-lunge-left 0.5s ease-out;
+}
+
+.animate-strike-right {
+  animation: strike-lunge-right 0.5s ease-out;
+}
+
+.animate-hit-shake {
+  animation: hit-shake 0.45s ease-out;
+}
+
+.animate-guard-pulse {
+  animation: guard-pulse 1.8s infinite ease-in-out;
+}
+
+.animate-float-gentle {
+  animation: float-gentle 4s infinite ease-in-out;
+}
+
+/* ── Festive Lunar Night & Diwali Aesthetic Utilities ── */
+.glow-diya {
+  box-shadow: 0 0 25px 2px rgba(232, 167, 90, 0.45), 0 0 50px 8px rgba(255, 143, 0, 0.2);
+}
+
+.glow-marigold {
+  box-shadow: 0 0 25px 2px rgba(255, 179, 0, 0.5), 0 0 45px 6px rgba(255, 119, 34, 0.25);
+}
+
+.glow-saffron {
+  box-shadow: 0 0 25px 3px rgba(255, 119, 34, 0.5), 0 0 50px 10px rgba(220, 53, 69, 0.2);
+}
+
+.border-diya {
+  border-color: rgba(232, 167, 90, 0.4);
+}
+
+.border-diya:hover {
+  border-color: rgba(255, 179, 0, 0.8);
+  box-shadow: 0 0 20px rgba(232, 167, 90, 0.35);
+}
+
+/* ── Combat Visual Effects & Floating Numbers ── */
+@keyframes float-damage-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1.25);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-24px) scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-45px) scale(0.9);
+  }
+}
+
+.animate-float-damage {
+  animation: float-damage-up 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slash-sweep {
+  0% {
+    stroke-dashoffset: 600;
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+.animate-slash-trail {
+  stroke-dasharray: 600;
+  animation: slash-sweep 0.45s cubic-bezier(0.2, 0, 0.2, 1) forwards;
+}
+
+@keyframes shield-barrier-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  30% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
+  70% {
+    opacity: 0.85;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+.animate-shield-barrier {
+  animation: shield-barrier-pulse 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes combat-screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-8px, 6px); }
+  30% { transform: translate(8px, -6px); }
+  45% { transform: translate(-6px, -4px); }
+  60% { transform: translate(6px, 4px); }
+  75% { transform: translate(-3px, 2px); }
+  90% { transform: translate(3px, -2px); }
+}
+
+.animate-screen-shake {
+  animation: combat-screen-shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Animation utilities */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.88; transform: scale(0.99); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 3s infinite ease-in-out;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(200, 169, 110, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 167, 90, 0.6);
+}
+
+/* ── Toast slide-in animation ── */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(40px) scale(0.96); }
+  to   { opacity: 1; transform: translateX(0)    scale(1); }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+/* ── Ambient glow pulse for lobby orbs ── */
+@keyframes glow-orb {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.15); }
+}
+
+.animate-glow-orb {
+  animation: glow-orb 2.5s ease-in-out infinite;
+}
+
+/* ── Modal / Overlay fade-in animation ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Accessibility: prefers-reduced-motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

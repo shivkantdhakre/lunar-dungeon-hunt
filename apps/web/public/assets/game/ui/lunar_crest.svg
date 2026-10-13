@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="crestGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF5DF" />
+      <stop offset="40%" stop-color="#C8A96E" />
+      <stop offset="100%" stop-color="#6F4E18" />
+    </linearGradient>
+    <linearGradient id="crestBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C9E5FF" />
+      <stop offset="100%" stop-color="#7899D5" />
+    </linearGradient>
+    <filter id="crestGlow">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <circle cx="60" cy="60" r="54" fill="#080D20" stroke="url(#crestGold)" stroke-width="2.5" />
+  <circle cx="60" cy="60" r="48" fill="#141936" stroke="#8D78D6" stroke-width="1.5" stroke-dasharray="3 3" />
+  <!-- Large Lunar Crescent -->
+  <path d="M60 24 A36 36 0 1 0 92 84 A38 38 0 1 1 60 24 Z" fill="url(#crestGold)" filter="url(#crestGlow)" />
+  <!-- Inner Dungeon Sword -->
+  <path d="M58 32 L62 32 L61 80 L59 80 Z" fill="url(#crestBlue)" />
+  <path d="M50 44 L70 44 L60 48 Z" fill="url(#crestGold)" />
+  <polygon points="60,26 62,32 58,32" fill="#FFF" />
+  <circle cx="60" cy="85" r="3" fill="url(#crestGold)" />
+</svg>

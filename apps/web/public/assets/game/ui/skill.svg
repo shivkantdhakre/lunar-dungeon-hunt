@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="skillViolet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C9E5FF" />
+      <stop offset="50%" stop-color="#8D78D6" />
+      <stop offset="100%" stop-color="#3A1C71" />
+    </linearGradient>
+    <filter id="starGlow">
+      <feGaussianBlur stdDeviation="4" result="glow" />
+      <feComposite in="SourceGraphic" in2="glow" operator="over" />
+    </filter>
+  </defs>
+  <circle cx="50" cy="50" r="46" fill="#080D20" stroke="#C8A96E" stroke-width="2.5" />
+  <circle cx="50" cy="50" r="41" fill="#141936" stroke="#8D78D6" stroke-dasharray="4 2" stroke-width="1.2" />
+  <!-- Crescent Moon -->
+  <path d="M54 22 A26 26 0 1 0 74 70 A28 28 0 1 1 54 22 Z" fill="url(#skillViolet)" filter="url(#starGlow)" />
+  <!-- 8-point Celestial Star -->
+  <polygon points="58,36 61,46 71,49 61,52 58,62 55,52 45,49 55,46" fill="#F3ECDD" filter="url(#starGlow)" />
+  <circle cx="58" cy="49" r="3" fill="#FFF" />
+</svg>
