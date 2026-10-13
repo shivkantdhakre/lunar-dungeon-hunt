@@ -2,7 +2,7 @@
   "name": "lunar-dungeon-monorepo",
   "private": true,
   "engines": {
-    "node": ">=24 <25",
+    "node": ">=20",
     "npm": ">=10.0.0"
   },
   "packageManager": "npm@11.5.2",
@@ -18,10 +18,12 @@
     "test": "turbo run test",
     "clean": "turbo run clean"
   },
+  "dependencies": {
+    "turbo": "^2.1.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "socket.io-client": "^4.8.1",
-    "turbo": "^2.1.0",
     "typescript-eslint": "^8.0.0"
   }
 }
