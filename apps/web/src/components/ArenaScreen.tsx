@@ -94,6 +94,8 @@ export function ArenaScreen({
       return;
     }
 
+    setCountdownMs(Math.max(0, deadline - Date.now()));
+
     const interval = setInterval(() => {
       const remaining = Math.max(0, deadline - Date.now());
       setCountdownMs(remaining);
@@ -237,7 +239,8 @@ export function ArenaScreen({
         {countdownMs !== null && !isPaused && (
           <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-300">
             <span className="uppercase font-semibold tracking-wider flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" /> Action Timer
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+              {matchState.status === 'picking' ? 'Selection Timer' : 'Action Timer'}
             </span>
             <span className="font-mono font-bold text-amber-300 text-sm">
               {(countdownMs / 1000).toFixed(1)}s remaining
@@ -367,8 +370,8 @@ export function ArenaScreen({
       {isDueling && (
         <BattleStage
           matchState={matchState}
-          activeFighterA={activeFighterA}
-          activeFighterB={activeFighterB}
+          activeFighterA={activeFighterA ?? matchState.activeFighterA}
+          activeFighterB={activeFighterB ?? matchState.activeFighterB}
           animStateA={animStateA}
           animStateB={animStateB}
           countdownMs={countdownMs}

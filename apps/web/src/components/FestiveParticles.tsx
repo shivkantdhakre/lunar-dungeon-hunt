@@ -22,7 +22,7 @@ export function FestiveParticles() {
     if (!canvas) return;
 
     // Check prefers-reduced-motion
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       return;
     }
 

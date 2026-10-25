@@ -476,6 +476,9 @@ export class MatchService implements OnModuleDestroy {
               this.eventPublisher.broadcastSnapshots(matchId);
             }
           } else if (commitResult.type === 'duelCompleted') {
+            if (!commitResult.result.matchCompleted) {
+              this.transitionToPicking(match);
+            }
             if (this.eventPublisher) {
               this.eventPublisher.emitToMatch(matchId, 'duel:completed', {
                 winnerPartySide: commitResult.result.winner,
@@ -491,9 +494,6 @@ export class MatchService implements OnModuleDestroy {
                 });
               }
               this.eventPublisher.broadcastSnapshots(matchId);
-            }
-            if (!commitResult.result.matchCompleted) {
-              this.transitionToPicking(match);
             }
           }
 
@@ -524,6 +524,9 @@ export class MatchService implements OnModuleDestroy {
           );
 
           const finalResult = handleSuddenDeathResolution(match, outcome, this.tieBreakService, this.duelHistoryStore);
+          if (!finalResult.matchCompleted) {
+            this.transitionToPicking(match);
+          }
           if (this.eventPublisher) {
             this.eventPublisher.emitToMatch(matchId, 'duel:completed', {
               winnerPartySide: finalResult.winner,
@@ -539,10 +542,6 @@ export class MatchService implements OnModuleDestroy {
               });
             }
             this.eventPublisher.broadcastSnapshots(matchId);
-          }
-
-          if (!finalResult.matchCompleted) {
-            this.transitionToPicking(match);
           }
 
           if (onTimeout) onTimeout(finalResult);
@@ -1032,6 +1031,9 @@ export class MatchService implements OnModuleDestroy {
       timestamp: new Date().toISOString(),
     });
     this.transitionToPicking(match);
+    if (this.eventPublisher) {
+      this.eventPublisher.broadcastSnapshots(matchId);
+    }
     return match;
   }
 
@@ -1064,6 +1066,9 @@ export class MatchService implements OnModuleDestroy {
       reason,
       timestamp: new Date().toISOString(),
     });
+    if (this.eventPublisher) {
+      this.eventPublisher.broadcastSnapshots(matchId);
+    }
     return match;
   }
 
@@ -1096,6 +1101,9 @@ export class MatchService implements OnModuleDestroy {
       runId: match.runId,
       timestamp: new Date().toISOString(),
     });
+    if (this.eventPublisher) {
+      this.eventPublisher.broadcastSnapshots(matchId);
+    }
     return match;
   }
 
@@ -1211,6 +1219,10 @@ export class MatchService implements OnModuleDestroy {
         match.currentDuelNumber += 1;
         this.transitionToPicking(match);
       }
+    }
+
+    if (this.eventPublisher) {
+      this.eventPublisher.broadcastSnapshots(matchId);
     }
 
     return match;

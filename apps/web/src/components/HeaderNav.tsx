@@ -49,6 +49,13 @@ export function HeaderNav({ activeTab, onTabChange, matchId, onOpenCodex }: Head
             Connecting...
           </span>
         );
+      case 'reconnecting':
+        return (
+          <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            Reconnecting...
+          </span>
+        );
       default:
         return (
           <span className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/30">

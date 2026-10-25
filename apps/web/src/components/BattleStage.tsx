@@ -58,9 +58,25 @@ export function BattleStage({
   const prevHpBRef = useRef(hpB);
   const prevShieldARef = useRef(shieldA);
   const prevShieldBRef = useRef(shieldB);
+  const prevFighterIdARef = useRef(activeFighterA?.id);
+  const prevFighterIdBRef = useRef(activeFighterB?.id);
 
   // Trigger floating combat feedback on HP or Shield changes
   useEffect(() => {
+    // If fighter changed on side A (e.g. new duel), re-seed refs without damage diff
+    if (activeFighterA?.id !== prevFighterIdARef.current) {
+      prevFighterIdARef.current = activeFighterA?.id;
+      prevHpARef.current = hpA;
+      prevShieldARef.current = shieldA;
+      return;
+    }
+    // If fighter changed on side B (e.g. new duel), re-seed refs without damage diff
+    if (activeFighterB?.id !== prevFighterIdBRef.current) {
+      prevFighterIdBRef.current = activeFighterB?.id;
+      prevHpBRef.current = hpB;
+      prevShieldBRef.current = shieldB;
+      return;
+    }
     // Damage to Party A
     if (prevHpARef.current > hpA) {
       const diff = prevHpARef.current - hpA;

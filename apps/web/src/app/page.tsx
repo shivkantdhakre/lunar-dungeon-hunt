@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { SocketProvider, useSocket } from '../../lib/socket/SocketProvider';
 import { HeaderNav, ActiveTab } from '../components/HeaderNav';
 import { HostScreen } from '../components/HostScreen';
@@ -28,8 +28,11 @@ interface ToastNotice {
 }
 
 function MainApp() {
-  const { socket, setAuthToken } = useSocket();
+  const { socket, connectionState, setAuthToken } = useSocket();
   const [activeTab, setActiveTab] = useState<ActiveTab>('arena');
+  const activeTabRef = useRef<ActiveTab>(activeTab);
+  activeTabRef.current = activeTab;
+
   const [tokens, setTokens] = useState<StoredTokens | null>(null);
   const [matchState, setMatchState] = useState<PublicMatchSnapshot | null>(null);
   const [partyStateA, setPartyStateA] = useState<PrivatePartySnapshot | null>(null);
@@ -47,6 +50,62 @@ function MainApp() {
     const timer = setTimeout(() => setToast(null), 5000);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  // Synchronize active public match state and credentials from authoritative server
+  const syncActivePublicMatch = useCallback(
+    async (options?: { forceTokenUpdate?: boolean }) => {
+      if (typeof window === 'undefined') return null;
+      const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3001';
+      try {
+        const res = await fetch(`${serverUrl}/matches/active/public`, { cache: 'no-store' });
+        if (!res.ok) {
+          if (res.status === 404) {
+            setMatchState(null);
+            setActiveFighterA(null);
+            setActiveFighterB(null);
+          }
+          return null;
+        }
+        const data = await res.json();
+        if (data && data.snapshot) {
+          setMatchState(data.snapshot);
+          if (data.snapshot.status === 'dueling' || data.snapshot.status === 'suddenDeath') {
+            if (data.snapshot.activeFighterA) setActiveFighterA(data.snapshot.activeFighterA);
+            if (data.snapshot.activeFighterB) setActiveFighterB(data.snapshot.activeFighterB);
+          } else if (data.snapshot.status === 'lobby' || data.snapshot.status === 'picking') {
+            setActiveFighterA(null);
+            setActiveFighterB(null);
+          }
+
+          if (data.arenaToken) {
+            setTokens((prev) => {
+              if (prev && prev.arena === data.arenaToken && !options?.forceTokenUpdate) {
+                return prev;
+              }
+              const updated = {
+                host: prev?.host ?? '',
+                partyA: prev?.partyA ?? '',
+                partyB: prev?.partyB ?? '',
+                arena: data.arenaToken,
+              };
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('ld_stored_tokens', JSON.stringify(updated));
+              }
+              return updated;
+            });
+            if (activeTabRef.current === 'arena') {
+              setAuthToken(data.arenaToken);
+            }
+          }
+          return data;
+        }
+      } catch {
+        // Network blip / server startup - interval will continue polling
+      }
+      return null;
+    },
+    [setAuthToken],
+  );
 
   // Auto-discover active match and restore tokens on page load / refresh
   useEffect(() => {
@@ -101,58 +160,51 @@ function MainApp() {
       return;
     }
 
-    // 3. If no tokens or active match loaded, auto-fetch active public match for Arena Spectator
-    const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3001';
-    fetch(`${serverUrl}/matches/active/public`)
-      .then((res) => {
-        if (!res.ok) return null;
-        return res.json();
-      })
-      .then((data) => {
-        if (data && data.snapshot) {
-          setMatchState(data.snapshot);
-          if (data.snapshot.activeFighterA) setActiveFighterA(data.snapshot.activeFighterA);
-          if (data.snapshot.activeFighterB) setActiveFighterB(data.snapshot.activeFighterB);
-          if (data.arenaToken && (!loadedTokens || !loadedTokens.arena)) {
-            setAuthToken(data.arenaToken);
-            setTokens((prev) => {
-              const updated = {
-                host: prev?.host ?? '',
-                partyA: prev?.partyA ?? '',
-                partyB: prev?.partyB ?? '',
-                arena: data.arenaToken,
-              };
-              localStorage.setItem('ld_stored_tokens', JSON.stringify(updated));
-              return updated;
-            });
-          }
-        }
-      })
-      .catch(() => {});
-  }, [setAuthToken]);
+    // 3. Immediately sync active public match for Arena Spectator
+    syncActivePublicMatch({ forceTokenUpdate: true });
+  }, [setAuthToken, syncActivePublicMatch]);
+
+  // Continuous live-sync & seamless recovery loop without page refresh
+  useEffect(() => {
+    const isDisconnectedOrEmpty = !matchState || connectionState !== 'connected';
+    const pollIntervalMs = isDisconnectedOrEmpty ? 1500 : 4000;
+    const interval = setInterval(() => {
+      syncActivePublicMatch({
+        forceTokenUpdate: activeTabRef.current === 'arena' && connectionState !== 'connected',
+      });
+    }, pollIntervalMs);
+
+    return () => clearInterval(interval);
+  }, [syncActivePublicMatch, !matchState, connectionState]);
 
   // Synchronize WebSocket identity token with active tab
   useEffect(() => {
-    if (!tokens) return;
-    if (activeTab === 'host' && tokens.host) {
+    if (activeTab === 'host' && tokens?.host) {
       setAuthToken(tokens.host);
-    } else if (activeTab === 'partyA' && tokens.partyA) {
+    } else if (activeTab === 'partyA' && tokens?.partyA) {
       setAuthToken(tokens.partyA);
-    } else if (activeTab === 'partyB' && tokens.partyB) {
+    } else if (activeTab === 'partyB' && tokens?.partyB) {
       setAuthToken(tokens.partyB);
-    } else if (activeTab === 'arena' && tokens.arena) {
-      setAuthToken(tokens.arena);
+    } else if (activeTab === 'arena') {
+      if (tokens?.arena) {
+        setAuthToken(tokens.arena);
+      }
     }
-  }, [activeTab, tokens, setAuthToken]);
+  }, [activeTab, tokens?.host, tokens?.partyA, tokens?.partyB, tokens?.arena, setAuthToken]);
 
-  // Socket event listeners
+  // Socket event listeners for zero-latency live arena updates
   useEffect(() => {
     if (!socket) return;
 
     const onMatchState = (state: PublicMatchSnapshot) => {
       setMatchState(state);
-      if (state.activeFighterA) setActiveFighterA(state.activeFighterA);
-      if (state.activeFighterB) setActiveFighterB(state.activeFighterB);
+      if (state.status === 'lobby' || state.status === 'picking') {
+        setActiveFighterA(null);
+        setActiveFighterB(null);
+      } else if (state.status === 'dueling' || state.status === 'suddenDeath') {
+        if (state.activeFighterA) setActiveFighterA(state.activeFighterA);
+        if (state.activeFighterB) setActiveFighterB(state.activeFighterB);
+      }
     };
 
     const onPartyState = (state: PrivatePartySnapshot) => {
@@ -165,15 +217,13 @@ function MainApp() {
 
     const onMatchError = ({ code, message }: { code: string; message: string }) => {
       if (
-        code === 'UNAUTHORIZED' &&
-        (message.includes('Match not found') ||
-          message.includes('Stale token') ||
-          message.includes('expired'))
+        code === 'UNAUTHORIZED' ||
+        code === 'SESSION_EXPIRED' ||
+        message.includes('Match not found') ||
+        message.includes('Stale token') ||
+        message.includes('expired')
       ) {
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('ld_stored_tokens');
-        }
-        setTokens(null);
+        syncActivePublicMatch({ forceTokenUpdate: true });
       }
       setToast({
         type: 'error',
@@ -243,6 +293,16 @@ function MainApp() {
     }) => {
       setActiveFighterA(stateA);
       setActiveFighterB(stateB);
+      setMatchState((prev) =>
+        prev
+          ? {
+              ...prev,
+              currentTurnNumber: turnNumber + 1,
+              activeFighterA: stateA,
+              activeFighterB: stateB,
+            }
+          : prev,
+      );
       setCombatLogs((prev) => [
         ...combatLog.map((c) => ({ actor: c.actor, event: c.event })),
         {
@@ -262,6 +322,16 @@ function MainApp() {
     }) => {
       setActiveFighterA(fighterA);
       setActiveFighterB(fighterB);
+      setMatchState((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'suddenDeath',
+              activeFighterA: fighterA,
+              activeFighterB: fighterB,
+            }
+          : prev,
+      );
       setToast({
         type: 'warning',
         message: '⚡ SUDDEN DEATH HAS COMMENCED!',
@@ -283,6 +353,15 @@ function MainApp() {
       scoreA: number;
       scoreB: number;
     }) => {
+      setMatchState((prev) =>
+        prev
+          ? {
+              ...prev,
+              scoreA,
+              scoreB,
+            }
+          : prev,
+      );
       setToast({
         type: 'success',
         message: `🏁 Duel Concluded! Winner: Party ${winnerPartySide}. Series Score: ${scoreA} - ${scoreB}`,
@@ -298,6 +377,19 @@ function MainApp() {
 
     const onTokensRotated = (payload: MatchTokensRotatedPayload) => {
       setTokens(payload.tokens);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ld_stored_tokens', JSON.stringify(payload.tokens));
+      }
+      const currentTab = activeTabRef.current;
+      if (currentTab === 'arena' && payload.tokens.arena) {
+        setAuthToken(payload.tokens.arena);
+      } else if (currentTab === 'host' && payload.tokens.host) {
+        setAuthToken(payload.tokens.host);
+      } else if (currentTab === 'partyA' && payload.tokens.partyA) {
+        setAuthToken(payload.tokens.partyA);
+      } else if (currentTab === 'partyB' && payload.tokens.partyB) {
+        setAuthToken(payload.tokens.partyB);
+      }
       setToast({
         type: 'info',
         message: `🔄 Match Reset: Run ID incremented to ${payload.runId}`,
@@ -306,6 +398,7 @@ function MainApp() {
         { actor: 'system', event: `🔄 Match Reset: Run ID incremented to ${payload.runId}` },
         ...prev,
       ]);
+      syncActivePublicMatch({ forceTokenUpdate: true });
     };
 
     const onMatchCompleted = ({
@@ -317,6 +410,16 @@ function MainApp() {
       finalScoreA: number;
       finalScoreB: number;
     }) => {
+      setMatchState((prev) =>
+        prev
+          ? {
+              ...prev,
+              status: 'completed',
+              scoreA: finalScoreA,
+              scoreB: finalScoreB,
+            }
+          : prev,
+      );
       setToast({
         type: 'success',
         message: `🏆 MATCH COMPLETE! PARTY ${winningPartySide} WINS THE TOURNAMENT (${finalScoreA} - ${finalScoreB})!`,
@@ -355,7 +458,7 @@ function MainApp() {
       socket.off('match:tokensRotated', onTokensRotated);
       socket.off('match:completed', onMatchCompleted);
     };
-  }, [socket]);
+  }, [socket, syncActivePublicMatch, setAuthToken]);
 
   const handleProvision = (newTokens: StoredTokens, _matchId: string) => {
     setTokens(newTokens);

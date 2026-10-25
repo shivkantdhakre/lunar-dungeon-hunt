@@ -518,6 +518,7 @@ export class RealtimeGateway implements OnGatewayInit, OnGatewayConnection, OnGa
         runId: match.runId,
         tokens,
       };
+      this.emitValidated(`match:${payload.matchId}`, 'match:tokensRotated', rotatedPayload);
       this.emitValidated(client, 'match:tokensRotated', rotatedPayload);
       // P1.3: Disconnect all existing room sockets so stale runId sockets cannot receive snapshots or mutate state
       this.server.in(`match:${payload.matchId}`).disconnectSockets(true);

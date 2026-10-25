@@ -61,6 +61,12 @@ export function SocketProvider({
   }, [authToken]);
 
   useEffect(() => {
+    if (!activeToken) {
+      setConnectionState('idle');
+      socketRef.current = null;
+      return;
+    }
+
     const serverUrl = process.env.NEXT_PUBLIC_SERVER_URL ?? 'http://localhost:3001';
     const socket: AppSocket = io(serverUrl, {
       autoConnect: false,
@@ -85,9 +91,6 @@ export function SocketProvider({
     // P0.1, P1.3, P2.5: Listen for rotated credentials on match reset and reconnect with new token
     const onTokensRotatedHandler = (payload: MatchTokensRotatedPayload) => {
       onTokensRotatedRef.current?.(payload);
-      if (payload.tokens.host) {
-        setActiveToken(payload.tokens.host);
-      }
     };
 
     socket.on('connect', onConnect);
